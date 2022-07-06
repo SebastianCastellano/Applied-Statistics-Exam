@@ -33,7 +33,6 @@ kimono.v4 <- kimono$value[which(kimono$city=="Kyoto" & kimono$type=="ready-to-us
 
 #a) check assumptions. 
 #Normality, even though we have enough data
-shapiro.test(kimono$value) #not gaussian
 shapiro.test(kimono.v1) #gaussian
 shapiro.test(kimono.v2) #gaussian
 shapiro.test(kimono.v3) #gaussian
@@ -86,7 +85,7 @@ conf.int.bonferroni <-c(mean[1]-mean[2] - qT*sqrt(Spooled*(1/n1+1/n2)), mean[1]-
 # different families and not independent that of the same family, answer the following question.
 # a) Perform a statistical test to verify if there is evidence of an impact of Hanami on the mean amount of rice,
 # sashimi, vegetables and okashi in families bent¯o's. Verify the needed assumptions.
-# b) Provide four T2 simultaneous confidence intervals (global confidence 95%) for the INCREASE in the mean consumption of rice, sashimi, vegetables and okashi in correspondence of the bloom of cherry blossoms. Comment
+# b) Provide four T2 simultaneous confidence intervals (global confidence 95%) for the INCREASE in the mean consumption of rice, sashimi, vegetables and okashi in correspondence of the bloom of cherry blossoms. Comment
 # the results.
 
 # Import dataset

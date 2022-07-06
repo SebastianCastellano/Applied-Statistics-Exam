@@ -1,5 +1,5 @@
 03/07/2017
-- kimono -> two ways anova (p=1, g=2, q=2) + bonferroni intervals on the difference of means
+- kimono -> two ways anova (g=2, q=2) + bonferroni intervals on the difference of means
 - hanami picnics -> repeated measures (p=4, q=2) + T2 intervals for the increase of means
 - geisha spotting -> hierarchical clustering + bonferroni on the difference of means (manova p=2)
 - garden -> linear regression

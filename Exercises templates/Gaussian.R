@@ -1,4 +1,4 @@
-X <- read.table("../Exams of previous years/2018/2018-09-13/IAMG.txt") #example file
+X <- read.table("~/GitHub/Applied-Statistics-Exam/Exams of previous years/2018/2018-09-13/IAMG.txt") #example file
 
 #a) Conf. region for mean of multivariate gaussian (95%)
 n <- dim(X)[1]
@@ -23,7 +23,7 @@ S <- cov(X)
 invS <- solve(S)
 alpha <- 0.05
 qfish <- (n-1)*p/(n-p)*qf(1-alpha,p,n-p) 
-T2 <- cbind(inf=sample.mean - sqrt(qfish)*sqrt(diag(S)/n),mean=sample.mean,sup=sample.mean + sqrt(qfish)*sqrt(diag(S)/n))
+conf.int.T2 <- cbind(inf=sample.mean - sqrt(qfish)*sqrt(diag(S)/n),mean=sample.mean,sup=sample.mean + sqrt(qfish)*sqrt(diag(S)/n))
 
 #c) Bonferroni confidence intervals for the mean (t-student)
 n <- dim(X)[1]
@@ -33,7 +33,7 @@ S <- cov(X)
 invS <- solve(S)
 alpha <- 0.05
 qT <- qt(1-alpha/2/p,n-1)
-T2 <- cbind(inf=sample.mean - qT*sqrt(diag(S)/n),mean=sample.mean,sup=sample.mean + qT*sqrt(diag(S)/n))
+conf.int.B <- cbind(inf=sample.mean - qT*sqrt(diag(S)/n),mean=sample.mean,sup=sample.mean + qT*sqrt(diag(S)/n))
 
 #d) Hypothesis test | e.g (p=3) H0: 0.1*X$1 - X$3 = 0, bilateral, alpha = 0.05
 n <- dim(X)[1]
@@ -57,3 +57,17 @@ CI2 <- cbind(inf = SS*(n-1)/chi_up,
              center = SS,
              sup = SS*(n-1)/chi_down)
 CI2
+
+#f) Test on the mean of a gaussian with H_0: mu = c(0,0,0,0)
+n <- dim(D)[1]
+p <- dim(D)[2]
+mu0 <- rep(0,p)
+sample.mean = sapply(D, mean)
+S <- cov(D)
+invS <- solve(S)
+alpha <- 0.05
+qfish <- (n-1)*p/(n-p) * qf(1-alpha,p,n-p)
+T_0 <- n*(sample.mean - mu0)%*%invS%*%(sample.mean - mu0)
+reject <- T_0 > qfish
+p.value <- 1-pf(T_0 * (n-p)/(p*(n-1)),p,n-p)
+print(paste("Reject H0:",reject,", p-value:",p.value))
