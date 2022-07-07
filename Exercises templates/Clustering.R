@@ -11,19 +11,53 @@ x11()
 plot(clust) #dendogram
 groups <- cutree(clust,2)
 #centers:
-c1 <- sapply(X[which(groups==1),], mean)
-c2 <-sapply(X[which(groups==2),], mean)
-if (dim(X)[2]=2){
+centers <- rbind(sapply(X[which(groups==1),], mean),sapply(X[which(groups==2),], mean))
+centers
+if (dim(X)[2]==2){
   x11()
   plot(X, col=groups+1) #red=group 1, green=group 2
-  points(c1,c2)
+  points(centers, pch=19)
 } 
 #sizes:
-table(groups)
+sizes <- table(groups)
+sizes
 #cophenetic coefficient:
 cor(cophenetic(clust),D)
 
-#c) Bonferroni conf. int. for the difference of mean of groups
+#b) K-means
+result.k <- kmeans(X, centers=2) # centers: fixed number of clusters
+groups.k <- result.k$cluster      # labels of clusters
+centers.k <- result.k$centers      # centers of the clusters
+# result.k$totss        # tot. sum of squares
+# result.k$withinss     # sum of squares within clusters
+# result.k$tot.withinss # sum(sum of squares within cluster)
+# result.k$betweenss    # sum of squares between clusters
+sizes.k <- result.k$size         # dimension of the clusters
+if (dim(X)[2]==2){
+  x11()
+  plot(X, col=groups.k+1) #red=group 1, green=group 2
+  points(centers.k, pch=19)
+} 
+if (dim(X)[2]==3){
+  open3d()
+  plot3d(X, size=3, col=groups.k+1, aspect = F) 
+  points3d(centers.k,size=10)
+}
+
+#c) Choosing k in K-means (elbow method)
+b <- NULL
+w <- NULL
+max.k <- 5
+for(k in 1:max.k){
+  result.k <- kmeans(X, k)
+  w <- c(w, sum(result.k$wit))
+  b <- c(b, result.k$bet)
+}
+x11()
+matplot(1:max.k, w/(w+b), pch='', xlab='clusters', ylab='within/tot', main='Choice of k', ylim=c(0,1))
+lines(1:max.k, w/(w+b), type='b', lwd=2)
+
+#d) Bonferroni conf. int. for the difference of mean of groups
 #Assumptions (gaussianity and same variance)
 mcshapiro.test(X[which(groups==1),])$p 
 mcshapiro.test(X[which(groups==2),])$p 
@@ -46,7 +80,7 @@ Spooled <- S/(n-g)
 conf.int.diff12 = cbind(inf=m1-m2-qT*sqrt(diag(Spooled)*(1/n1+1/n2)),dif_mean=m1-m2,sup=m1-m2+qT*sqrt(diag(Spooled)*(1/n1+1/n2)))
 conf.int.diff12  
 
-#d) Bonferroni conf. int. for the mean of one of the groups
+#e) Bonferroni conf. int. for the mean of one of the groups
 G <- X[which(groups==1),]
 n <- dim(G)[1]
 p <- dim(G)[2]
