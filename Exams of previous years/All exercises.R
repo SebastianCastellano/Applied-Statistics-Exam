@@ -483,7 +483,7 @@ boxplot(tourists.pca$scores[,2]~tourists$Month,outcol)
 # an additional 'pain' variable, that is a qualitative variable indicating whether the horse is still suffering 
 # (Pain = 'Yes') or not (Pain = 'No'). The latter variable is collected through a subjective judgement of experts, based on
 # the evaluation of facial expressions and a behavioral assessment.
-# a) Build 5 (error in the text there are only 4) Bonferroni confidence intervals (global level 99%) for the mean difference in 'Rectal.temperature',
+# a) Build 4 Bonferroni confidence intervals (global level 99%) for the mean difference in 'Rectal.temperature',
 # 'Pulse', 'Respiratory.rate' and 'Packed.cell.volume' between the horses with pain and without pain. Comment
 # the results and identify the variables along which a significant difference exists. State and verify the appropriate
 # assumptions.
