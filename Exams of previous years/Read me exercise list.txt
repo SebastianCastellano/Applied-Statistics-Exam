@@ -16,7 +16,6 @@
 - knossos -> clustering + manova
 - tide -> linear regression
 
-
 28/06/2018
 - morning -> repeated measures + bonferroni for mean + prediction intervals
 - mexican -> two-ways anova (equal to kimono)
@@ -28,7 +27,6 @@
 - running -> clustering + bonferroni conf interval mean + variance 
 - sales&presales -> repeated measures + bonferroni conf interval mean + variance + ellipse
 - focaccia -> linear regression
-
 
 extra
 - snow -> qda

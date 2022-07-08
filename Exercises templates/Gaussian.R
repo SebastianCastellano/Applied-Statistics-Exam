@@ -1,6 +1,7 @@
-X <- read.table("~/GitHub/Applied-Statistics-Exam/Exams of previous years/2018/2018-09-13/IAMG.txt") #example file
+X <- read.table("~/GitHub/Applied-Statistics-Exam/Exams of previous years/2018/2018-09-13/IAMG.txt") #example file p=3
+#X <- read.table("~/GitHub/Applied-Statistics-Exam/Exams of previous years/2017/2017-07-18/castle.txt") #example file p=2
 
-#a) Conf. region for mean of multivariate gaussian (95%)
+#a) Conf. region (ellipse) for mean of multivariate gaussian (95%)
 n <- dim(X)[1]
 p <- dim(X)[2]
 sample.mean <- sapply(X, mean)
@@ -14,6 +15,13 @@ center <- sample.mean
 radius <- sqrt(qfish/n)
 axes <- eigen(S)$vectors
 lenghts <- sqrt(eigen(S)$values)*radius
+if (p==2){
+  library(car)
+  x11()
+  plot(X, asp=1, pch=1, main='Dataset')
+  car::ellipse(center=sample.mean, shape=S, radius=sqrt(qfish*(1/n)), lwd=2, col = 'blue') #95% of means, replace 1/n with 1/n+1 to get 95% of values
+  points(45.733,7.333,pch=19,col="red")
+}
 
 #b) T2 confidence intervals for the mean (fisher)
 n <- dim(X)[1]
@@ -58,7 +66,7 @@ CI2 <- cbind(inf = SS*(n-1)/chi_up,
              sup = SS*(n-1)/chi_down)
 CI2
 
-#f) Test on the mean of a gaussian with H_0: mu = c(0,0,0,0)
+#f) Test on the mean of a gaussian
 n <- dim(D)[1]
 p <- dim(D)[2]
 mu0 <- rep(0,p)
