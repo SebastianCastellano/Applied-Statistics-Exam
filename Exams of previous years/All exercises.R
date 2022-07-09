@@ -836,23 +836,13 @@ summary(man)
 # Problema 4
 # The Venice lagoon is affected by important tide phenomena, and particularly by the so-called acqua alta. Consider
 # the following model for the sea level H [cm] at Punta della Salute (in Venice) at 17:00 of each day:
-#   H = ??0 + ??1 · sin 
-# 2??
-# 28
-# t
-# 
-# + ??2 · sin  ??
-# 365
-# (t ??? t0)
-# 
-# + ??3 · t + ??
-# where t ??? [1, 365] is the day of the year, t0 = 82 indicates the vernal equinox, and ?? ??? N(0, ??2
+#   H = Beta0 + Beta1 · sin (2pi/28*t) + Beta2 · sin(pi/365*(t-t0)) +Beta3 · t + eps
+# where t = [1, 365] is the day of the year, t0 = 82 indicates the vernal equinox, and eps ~ N(0, sigma^2)
 # ). Interpret the
 # first term as due to the effect of the moon motion (astronomical tide), the second term as associated with seasonal
 # effects, the third as due to the global increase of the sea level. The file tide.txt reports the sea level measured at
 # 17:00 on 203 days of 2015.
-# a) Estimate the five parameters of the model. Report the estimates of ??i
-# , i ??? {1,2,3}, and ??.
+# a) Estimate the five parameters of the model.
 # b) Having introduced and verified the appropriate assumptions, perform two statistical tests to verify if
 # - the mean sea level is influenced by the periodic components;
 # - the mean sea level depends on the global increase of the sea level.
@@ -1117,19 +1107,12 @@ points(data.frame(Year=986,Aspect.Ratio=1.4),col="gold",pch=4,lwd=2)
 
 
 # Problem n.4
-# The file Hotels.txt contains the rates for a double room in 4??? hotels at Playa del Carmen, recorded for 83 days of
-# the year 2017. For the rates consider a linear model, accounting for the time of the year, for the seasonality (wet
-#                                                                                                                 season or not) and for the position of the hotel with respect to the sea (seafront or not):
-#   Yg = ??0,g + ??1,g ·
-# 
-# 1 + cos 
-# 4??
-# 365
-# t
-#  + ,
-# with  ??? N(0, ??2
-# ) and g the grouping structure induced by the seasonality and by the seafront (consider a model
-#                                                                                without interaction).
+# The file Hotels.txt contains the rates for a double room in 4 star hotels at Playa del Carmen, recorded for 83 days of
+# the year 2017. For the rates consider a linear model, accounting for the time of the year, for the seasonality 
+#(wet season or not) and for the position of the hotel with respect to the sea (seafront or not):
+#   Yg = Beta0,g + Beta1,g*(1+cos(4*pi/365*t)) +eps
+# with eps ~ N(0, sigma^2)
+# and g the grouping structure induced by the seasonality and by the seafront (consider a model without interaction).
 # a) Estimate the parameters of the model ({??0,g, ??1,g, ??}). Verify the model assumptions.
 # b) Perform three statistical tests - each at level 1% - to verify if
 # - there is a significant dependence of the mean rates on the seasonality (wet season or not);
@@ -1137,7 +1120,7 @@ points(data.frame(Year=986,Aspect.Ratio=1.4),col="gold",pch=4,lwd=2)
 # - there is a significant difference in the temporal dynamic of the mean rates along the year depending on
 # the seasonality or on the position of the hotel.
 # c) Based on point (b), reduce the model and update the estimates of the parameters.
-# d) Provide a confidence interval (level 99%) for the maximum of the mean rates of 4??? hotels at Playa del Carmen.
+# d) Provide a confidence interval (level 99%) for the maximum of the mean rates of 4 star hotels at Playa del Carmen.
 
 rm(list=setdiff(ls(),"mcshapiro.test"))
 hotels <- read.table("Hotels.txt")
@@ -1147,7 +1130,7 @@ attach(hotels)
 pos.dummy <- ifelse(Position=="Seafront",1,0)
 season.dummy <- ifelse(Season=="WetSeason",1,0)
 
-lmod <- lm(price ~ pos.dummy + season.dummy + I(1+cos(4*pi/365*t)))
+lmod <- lm(price ~ pos.dummy + season.dummy + I(1+cos(4*pi/365*t)) +pos.dummy:I(1+cos(4*pi/365*t)) +season.dummy:I(1+cos(4*pi/365*t)))
 summary(lmod)
 sigma <- summary(lmod)$sigma
 
@@ -1226,7 +1209,7 @@ conf.int
 # Problem n.2
 # The file Running.txt collects the times of 80 participants to the Portofino>Run 2018, for the sections Santa
 # Margherita Ligure to Paraggi and Paraggi to Portofino.
-# a) Use a hierarchical clustering method (Euclidean distance and single linkage) to identify two groups of participants, i.e., those who actually run and those who walked instead. Report the number of data within each
+# a) Use a hierarchical clustering method (Euclidean distance and single linkage) to identify two groups of participants, i.e., those who actually run and those who walked instead. Report the number of data within each
 # cluster, the mean within the clusters and a qualitative plot of the results.
 # b) Evaluate the performances of the clustering method at point (a) and identify the possible issues (if any). Propose,
 # if needed, an alternative clustering method to identify the two groups of participants (report the number of
@@ -1280,9 +1263,9 @@ conf.int.cov
 # Problem n.3
 # The files Presales.txt and Sales.txt contain the prices of flip flops and swimsuits in 45 shops of Rapallo, before
 # and after the summer sales 2017, respectively.
-# a) Perform a statistical test (level 1%) to verify if the prices were discounted in mean of 20% during sales. Introduce
-#                                and verify the appropriate assumptions.
-#                                b) Provide a point estimate of the mean and of the covariance matrix of the discounts on flip flops and swimsuits
+# a) Perform a statistical test (level 1%) to verify if the prices were discounted in mean of 20% during sales. 
+# Introduce and verify the appropriate assumptions.
+# b) Provide a point estimate of the mean and of the covariance matrix of the discounts on flip flops and swimsuits
 # during the summer sales 2017.
 # c) Estimate an elliptical region that contains 99% of the discounts. Reports its analytical expression, its center,
 # and the direction and length of its semi-axes.
@@ -1353,8 +1336,8 @@ mixtools::ellipse(mu=center,sigm=W,alpha=.01) # this ellipse uses the chisq asym
 # Problem n.4
 # The file Focaccia.txt contains the amount [kg] of focaccia sold in a bakery in Recco during 43 days of June and
 # July 2017. For the kilos of sold focaccia consider the following linear model
-# Yg = ??0,g + ??1,g · t + ,
-# with t ??? [1 : 61] the index of the day, g = {weekend, weekday} the day of the week and  ??? N(0, ??2
+# Yg = Beta0,g + Beta1,g · t + eps,
+# with t = [1 : 61] the index of the day, g = {weekend, weekday} the day of the week and eps ~ N(0, sigma^2)
 # ).
 # a) Estimate the 5 parameters of the model {??0,g, ??1,g, ??}. Verify the model assumptions.
 # b) Perform two statistical tests - each at level 5% - to verify if

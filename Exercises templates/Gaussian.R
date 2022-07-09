@@ -58,7 +58,7 @@ pvalue <- 1-pt(T.stat,n-1)
 #e) Confidence intervals for the variance (p=3)
 n <- dim(X)[1]
 alpha <- 0.05
-SS <- c(var(X[1]),var(X[2]), var(X[3]))
+SS <- diag(cov(X))
 chi_up <- qchisq(1-alpha/2, n-1)
 chi_down <- qchisq(alpha/2, n-1)
 CI2 <- cbind(inf = SS*(n-1)/chi_up,

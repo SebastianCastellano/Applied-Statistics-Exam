@@ -38,7 +38,7 @@ an_new <- aov(waiting ~ course+ course:city)
 summary(an_new)
 
 #c) Confidence intervals (balanced) for the difference of the means of the groups identified in previous step
-n<-length(waiting)
+n<-dim(X)[1]
 g <- 3 
 k <- g*(g-1)/2 # bonferroni correction
 smean <- tapply(waiting,course,mean) # in alphabetical order of the factors

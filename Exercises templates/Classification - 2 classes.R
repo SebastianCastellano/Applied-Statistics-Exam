@@ -1,21 +1,23 @@
 load("~/GitHub/Applied-Statistics-Exam/mcshapiro.test.RData")
-X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-18/horsecolic.txt")
-X.values <- X[c(2,3)]
-X.classes <- factor(X[[5]])
+X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-18/horsecolic.txt") #classes=2
+X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-06-16/Exercise 2/musicCountry.txt",header = TRUE) 
+
+X.values <- X[c(1,2)]
+X.classes <- factor(X[[3]])
 x11()
 plot(X.values,col=ifelse(X.classes==levels(as.factor(X.classes))[1], "red","blue"),main="True classification")
 legend('topright',levels(as.factor(X.classes)),fill=c("red","blue"),bty='n')
 
-#a) LDA
+#a) Assumptions:  gaussianity (qda/lda) and same variance of the groups (lda only)
+mcshapiro.test(X.values[which(X.classes==levels(X.classes)[1]),])$p
+mcshapiro.test(X.values[which(X.classes==levels(X.classes)[2]),])$p
+bartlett.test(X.values[which(X.classes==levels(X.classes)[1]),],X.values[which(X.classes==levels(X.classes)[2]),])
+cov(X.values[which(X.classes==levels(X.classes)[1]),])
+cov(X.values[which(X.classes==levels(X.classes)[2]),])
+
+#b) LDA
 library(MASS) #for lda/qda
-# Assumptions: gaussianity and same variance of the groups
-mcshapiro.test(X.values[which(X.classes=="Yes"),])$p
-mcshapiro.test(X.values[which(X.classes=="No"),])$p
-bartlett.test(X.values[which(X.classes=="Yes"),],X.values[which(X.classes=="No"),])
-cov(X.values[which(X.classes=="Yes"),])
-cov(X.values[which(X.classes=="No"),])
-# Model
-lda.mod <- lda(as.matrix(X.values), X.classes)
+lda.mod <- lda(as.matrix(X.values), X.classes) # remember to add prior if needed
 lda.mod
 classification <-predict(lda.mod)$class
 # Plot:
@@ -34,16 +36,9 @@ z2.q <- z.q[,2] - z.q[,1]
 contour(x, y, matrix(z1.q, 200), levels=0, drawlabels=F, add=T, lty=2)  
 contour(x, y, matrix(z2.q, 200), levels=0, drawlabels=F, add=T, lty=2)
 
-#a) QDA
+#c) QDA
 library(MASS) #for lda/qda
-# Assumptions: gaussianity
-mcshapiro.test(X.values[which(X.classes=="Yes"),])$p
-mcshapiro.test(X.values[which(X.classes=="No"),])$p
-bartlett.test(X.values[which(X.classes=="Yes"),],X.values[which(X.classes=="No"),])
-cov(X.values[which(X.classes=="Yes"),])
-cov(X.values[which(X.classes=="No"),])
-# Model
-qda.mod <- qda(as.matrix(X.values), X.classes)
+qda.mod <- qda(as.matrix(X.values), X.classes) # remember to add prior if needed
 qda.mod
 classification <-predict(qda.mod)$class
 # Plot:
@@ -62,12 +57,33 @@ z2.q <- z.q[,2] - z.q[,1]
 contour(x, y, matrix(z1.q, 200), levels=0, drawlabels=F, add=T, lty=2)  
 contour(x, y, matrix(z2.q, 200), levels=0, drawlabels=F, add=T, lty=2)
 
-#b) APER
+#d) APER
 misclass <- sum(classification!=X.classes)
 conf.mat<-table(true.class = X.classes, classifier = classification)
 conf.mat
-prior <- lda.mod$prior
+prior <- qda.mod$prior
 APER  <- conf.mat[1,2]/(conf.mat[1,2]+conf.mat[1,1])*prior[1]+conf.mat[2,1]/(conf.mat[2,1]+conf.mat[2,2])*prior[2]
 APER
+# APER <- 0
+# for(g in 1:G)
+#   APER <- APER + sum(misc[g,-g])/sum(misc[g,]) * prior[g]  
+
+#e) AER through leave-one-out cross-validation
+errors_CV <- 0
+n <- dim(X)[1]
+for(i in 1:n){
+  modCV.i <- qda(X.values[-i,], X.classes[-i], prior=prior)
+  errors_CV <- errors_CV + as.numeric(predict(modCV.i,X.values[i,])$class != X.classes[i])
+}
+errors_CV
+AERCV   <- sum(errors_CV)/n
+AERCV
+
+#f)Probability of a new sample being classified as class i
+i <- 1
+Prob <- conf.mat[i,i]/(sum(conf.mat[i,]))*prior[i] + t(conf.mat[-i,i]/(table(X.classes)[-i]))%*%prior[-i]
+Prob
+
+
 
 # library(e1071) for svm

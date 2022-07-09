@@ -6,6 +6,8 @@ n<- dim(X)[1]
 #categ.factor <- ifelse(wind=="Yes",1,0) # categorical factor
 lmod <- lm(extension ~ carps + maple + cherry + stones)
 summary(lmod)
+Betas <- lmod$coefficients
+sigma <- summary(lmod)$sigma
 #Assumptions (gaussianity of residuals, homosckedasticity, independence from regressors (lack of patterns))
 x11()
 par(mfrow = c(2,2))
@@ -14,7 +16,7 @@ shapiro.test(lmod$residuals)$p
 # qqnorm(g$residuals) # already present in plot(lmod)
 # qqline(g$residuals)
 x11()
-plot(carps,scale(g$residuals, scale = T, center = F)) # repeatplot for other regressors
+plot(carps,scale(g$residuals, scale = T, center = F)) # repeat plot for other regressors
 
 #b) Hypothesis testing on the coefficients
 library(car)
@@ -32,6 +34,12 @@ anova(lmod,lmod1) # we do not want to reject (high p-value = good)
 
 #d) Prediction and confidence intervals
 x.new <- data.frame(Va = 35, Vi=25, wind.factor=1) 
-k <- 2 #num intervals, Bonferroni correction
+k <- 1 #num intervals, Bonferroni correction
 alpha<-0.01/k
 predict(lmod1,x.new,interval = "prediction",level = 1-alpha) # interval=prediction/confidence
+
+#e) Confidence intervals for the maximum of the means
+max.mean.pos <- which.max(lmod$fitted.values) 
+x0 <- data.frame(pos.dummy=1,season.dummy=0,t=2) #fill with the values of the regressors in X[max.mean.pos,]
+alpha <- 0.05
+predict(lmod,x0,interval = "confidence",level = 1 - alpha)
