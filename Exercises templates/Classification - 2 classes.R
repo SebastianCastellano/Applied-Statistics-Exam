@@ -1,5 +1,5 @@
 load("~/GitHub/Applied-Statistics-Exam/mcshapiro.test.RData")
-X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-18/horsecolic.txt") #classes=2
+X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-18/horsecolic.txt") 
 X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-06-16/Exercise 2/musicCountry.txt",header = TRUE) 
 
 X.values <- X[c(1,2)]
@@ -22,7 +22,7 @@ lda.mod
 classification <-predict(lda.mod)$class
 # Plot:
 x11()
-plot(X.values,col=ifelse(classification==levels(as.factor(X.classes))[1], "red","blue"),main="lda")
+plot(X.values,col=ifelse(classification==levels(as.factor(X.classes))[1], "red","blue"),main="LDA")
 legend('topright',levels(as.factor(X.classes)),fill=c("red","blue"),bty='n')
 points(X.values[which(classification==levels(as.factor(X.classes))[1] & X.classes==levels(as.factor(X.classes))[2]),],col="red",pch=19) #misclassified 1-> true 2
 points(X.values[which(classification==levels(as.factor(X.classes))[2] & X.classes==levels(as.factor(X.classes))[1]),],col="blue",pch=19) #misclassified 2 -> true 1
@@ -38,12 +38,12 @@ contour(x, y, matrix(z2.q, 200), levels=0, drawlabels=F, add=T, lty=2)
 
 #c) QDA
 library(MASS) #for lda/qda
-qda.mod <- qda(as.matrix(X.values), X.classes) # remember to add prior if needed
+qda.mod <- qda(as.matrix(X.values), X.classes, prior= c(0.1,0.9)) # remember to add prior if needed
 qda.mod
 classification <-predict(qda.mod)$class
 # Plot:
 x11()
-plot(X.values,col=ifelse(classification==levels(as.factor(X.classes))[1], "red","blue"),main="qda")
+plot(X.values,col=ifelse(classification==levels(as.factor(X.classes))[1], "red","blue"),main="QDA")
 legend('topright',levels(as.factor(X.classes)),fill=c("red","blue"),bty='n')
 points(X.values[which(classification==levels(as.factor(X.classes))[1] & X.classes==levels(as.factor(X.classes))[2]),],col="red",pch=19) #misclassified 1-> true 2
 points(X.values[which(classification==levels(as.factor(X.classes))[2] & X.classes==levels(as.factor(X.classes))[1]),],col="blue",pch=19) #misclassified 2 -> true 1
@@ -51,6 +51,7 @@ points(X.values[which(classification==levels(as.factor(X.classes))[2] & X.classe
 x  <- seq(min(X.values[,1]), max(X.values[,1]), length=200)
 y  <- seq(min(X.values[,2]), max(X.values[,2]), length=200)
 xy <- expand.grid(Altezza=x, Peso=y)
+names(xy) <- names(X.values)
 z.q  <- predict(qda.mod, xy)$post  
 z1.q <- z.q[,1] - z.q[,2]
 z2.q <- z.q[,2] - z.q[,1]
@@ -58,15 +59,16 @@ contour(x, y, matrix(z1.q, 200), levels=0, drawlabels=F, add=T, lty=2)
 contour(x, y, matrix(z2.q, 200), levels=0, drawlabels=F, add=T, lty=2)
 
 #d) APER
+# APER <- 0
+# for(g in 1:G)
+#   APER <- APER + sum(misc[g,-g])/sum(misc[g,]) * prior[g]
 misclass <- sum(classification!=X.classes)
 conf.mat<-table(true.class = X.classes, classifier = classification)
 conf.mat
 prior <- qda.mod$prior
 APER  <- conf.mat[1,2]/(conf.mat[1,2]+conf.mat[1,1])*prior[1]+conf.mat[2,1]/(conf.mat[2,1]+conf.mat[2,2])*prior[2]
 APER
-# APER <- 0
-# for(g in 1:G)
-#   APER <- APER + sum(misc[g,-g])/sum(misc[g,]) * prior[g]  
+  
 
 #e) AER through leave-one-out cross-validation
 errors_CV <- 0
@@ -84,6 +86,58 @@ i <- 1
 Prob <- conf.mat[i,i]/(sum(conf.mat[i,]))*prior[i] + t(conf.mat[-i,i]/(table(X.classes)[-i]))%*%prior[-i]
 Prob
 
+#g) SVM
+library(e1071) # for svm
+dat <- data.frame(X.values, y=as.factor (X.classes))   # to use svm you must build a data.frame where the class must be called y and must be factor
+svm.mod <- svm(y~., data=dat , kernel ='linear', cost =10, scale =FALSE ) #y~. means use all the features
+summary(svm.mod)
+classification <- predict(svm.mod)
+#Plot 1:
+x11()
+par(mfrow=c(1,2))
+plot(svm.mod , dat, col =c('salmon', 'light blue'), pch=19) #notice that it switches the coordinates, the "x" are the support vectors
+#Plot 2 & 3:
+n.g <- 100
+xgrid <- expand.grid(x.1=seq(from=range(dat[[1]])[1],to=range(dat[[1]])[2],length=n.g),
+                     x.2=seq(from=range(dat[[2]])[1],to=range(dat[[2]])[2],length=n.g))
+names(xgrid) <- names(X.values)
+ygrid <- predict(svm.mod,xgrid)
+x11()
+plot(xgrid,col=c("red","blue")[as.numeric(ygrid)],pch=20,cex=.2, main= "SVM")
+points(X.values,col=c("red","blue")[as.numeric(dat$y)],pch=19)
+points(X.values[svm.mod$index,],pch=5,cex=2) #support vectors
+x11()
+plot(X.values,col=c("red","blue")[as.numeric(dat$y)],pch=19, main= "SVM")
+contour(seq(from=range(dat[[1]])[1],to=range(dat[[1]])[2],length=n.g),
+        seq(from=range(dat[[2]])[1],to=range(dat[[2]])[2],length=n.g),
+        matrix(as.numeric(ygrid),n.g,n.g),level=1.5,add=TRUE,
+        drawlabels=F)
 
+#h) Tune the cost parameter in SVM (10-fold cross-validation)
+set.seed (1)
+tune.out <- tune(svm,y~.,data=dat ,kernel = 'linear',
+                 ranges =list(cost=c(0.001 , 0.01, 0.1, 1,10,100) ))
+summary(tune.out)
+bestmod <- tune.out$best.model# Extract the best model from the result of tune
+summary(bestmod)
+x11()
+plot(bestmod , dat, col =c('salmon', 'light blue'), pch=19)
 
-# library(e1071) for svm
+#i) Predict the class of a new unit
+x0 <- data.frame(x1=50, x2=3.5)
+names(x0) <- names(X.values)
+predict(svm.mod, x0)
+
+#j) k-nearest-neighbors
+library(class) #for knn
+k <- 5
+x11()
+plot(X.values,col=ifelse(X.classes==levels(as.factor(X.classes))[1], "red","blue"),main="True classification")
+legend('topright',levels(as.factor(X.classes)),fill=c("red","blue"),bty='n')
+x  <- seq(min(X.values[,1]), max(X.values[,1]), length=200)
+y  <- seq(min(X.values[,2]), max(X.values[,2]), length=200)
+xy <- expand.grid(x, y)
+names(xy) <- names(X.values)
+knn.mod <- knn(train = X.values, test = xy, cl = X.classes, k = k)
+z  <- as.numeric(knn.mod)
+contour(x, y, matrix(z, 200), levels=c(1.5, 2.5), drawlabels=F, add=T)

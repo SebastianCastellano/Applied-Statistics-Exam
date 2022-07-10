@@ -1,10 +1,10 @@
 X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-03/garden.txt")
-attach(X)
+X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-06-16/Exercise 3/danceability.txt", header=TRUE)
 n<- dim(X)[1]
 
 #a) Linear model
 #categ.factor <- ifelse(wind=="Yes",1,0) # categorical factor
-lmod <- lm(extension ~ carps + maple + cherry + stones)
+lmod <- lm(extension ~ carps + maple + cherry + stones, data=X)
 summary(lmod)
 Betas <- lmod$coefficients
 sigma <- summary(lmod)$sigma
@@ -26,7 +26,7 @@ linearHypothesis(lmod,rbind(c(0,1,0,0,0),c(0,0,1,-1,0)),c(0,0))
 library(regclass)
 vif(lmod) # variance inflation factor: if big (above 5) risk of collinearity
 #remove one at the time starting from highest p-value
-lmod1 <- lm(extension ~ carps + maple + stones)
+lmod1 <- lm(extension ~ carps + maple + stones, data=X)
 summary(lmod1)
 # test if we lose in explainability
 anova(lmod,lmod1) # we do not want to reject (high p-value = good)
@@ -36,10 +36,27 @@ anova(lmod,lmod1) # we do not want to reject (high p-value = good)
 x.new <- data.frame(Va = 35, Vi=25, wind.factor=1) 
 k <- 1 #num intervals, Bonferroni correction
 alpha<-0.01/k
-predict(lmod1,x.new,interval = "prediction",level = 1-alpha) # interval=prediction/confidence
+predict(lmod1, x.new, interval = "prediction", level = 1-alpha) # interval=prediction/confidence
 
 #e) Confidence intervals for the maximum of the means
 max.mean.pos <- which.max(lmod$fitted.values) 
 x0 <- data.frame(pos.dummy=1,season.dummy=0,t=2) #fill with the values of the regressors in X[max.mean.pos,]
 alpha <- 0.05
 predict(lmod,x0,interval = "confidence",level = 1 - alpha)
+
+#f) Random intercept and PVRE
+library(nlmeU)
+library(corrplot)
+library(nlme)
+library(lattice)
+library(plot.matrix)
+library(lme4)
+library(insight)
+lmoder <- lmer(danceability ~ loudness + tempo + (1|genre), data=X)
+summary(lmoder)
+sigma2_eps <- as.numeric(get_variance_residual(lmoder))
+sigma2_b <- as.numeric(get_variance_random(lmoder))
+PVRE <- sigma2_b/(sigma2_b+sigma2_eps)
+PVRE 
+x11()
+dotplot(ranef(fm16.1mer, condVar=T)) # visualization of the random intercepts with their 95% confidence intervals

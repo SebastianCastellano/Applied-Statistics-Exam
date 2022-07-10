@@ -1,6 +1,5 @@
 load("~/GitHub/Applied-Statistics-Exam/mcshapiro.test.RData")
 X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2018/2018-06-28/Precolombian.txt") #c=3
-
 X.values <- X[c(1,2)]
 X.classes <- factor(X[[3]])
 x11()
@@ -85,4 +84,21 @@ i <- 1
 Prob <- conf.mat[i,i]/(sum(conf.mat[i,]))*prior[i] + t(conf.mat[-i,i]/(table(X.classes)[-i]))%*%prior[-i]
 Prob
 
-# library(e1071) for svm
+#g) Predict the class of a new unit
+x0 <- data.frame(x1=50, x2=3.5)
+names(x0) <- names(X.values)
+predict(lda.mod, x0)
+
+#h) k-nearest-neighbors
+library(class) #for knn
+k <- 1
+x11()
+plot(X.values,col=ifelse(X.classes==levels(as.factor(X.classes))[1], "red",ifelse(X.classes==levels(as.factor(X.classes))[2],"blue","green2")),main="True classification")
+legend('topright',levels(as.factor(X.classes)),fill=c("red","blue","green2"),bty='n')
+x  <- seq(min(X.values[,1]), max(X.values[,1]), length=200)
+y  <- seq(min(X.values[,2]), max(X.values[,2]), length=200)
+xy <- expand.grid(x, y)
+names(xy) <- names(X.values)
+knn.mod <- knn(train = X.values, test = xy, cl = X.classes, k = k)
+z  <- as.numeric(knn.mod)
+contour(x, y, matrix(z, 200), levels=c(1.5, 2.5, 3.5), drawlabels=F, add=T)
