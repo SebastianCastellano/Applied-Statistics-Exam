@@ -2,7 +2,8 @@ load("~/GitHub/Applied-Statistics-Exam/mcshapiro.test.RData")
 X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-03/bento.txt")
 D <- X[c(1,2,3,4)]-X[c(5,6,7,8)]
 # Or if the datasets are in two different files:
-# Y <- read.table("second_file.txt")
+# X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-01-19/acoruna.txt")
+# Y <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-01-19/pontevedra.txt")
 # D <- X-Y
 boxplot(D)
 
@@ -16,7 +17,7 @@ mu0 <- rep(0,p)
 sample.mean = sapply(D, mean)
 S <- cov(D)
 invS <- solve(S)
-alpha <- 0.05
+alpha <- 0.01
 qfish <- (n-1)*p/(n-p) * qf(1-alpha,p,n-p)
 T_0 <- n*(sample.mean - mu0)%*%invS%*%(sample.mean - mu0)
 reject <- T_0 > qfish

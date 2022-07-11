@@ -1,6 +1,7 @@
 load("~/GitHub/Applied-Statistics-Exam/mcshapiro.test.RData")
-X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-18/horsecolic.txt") 
-X<- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-06-16/Exercise 2/musicCountry.txt",header = TRUE) 
+X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2017/2017-07-18/horsecolic.txt") 
+# X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-06-16/Exercise 2/musicCountry.txt",header = TRUE)
+# X <- read.table("~/GitHub/Applied-Statistics-Exam//Exams of previous years/2022/2022-01-19/fish.txt")
 
 X.values <- X[c(1,2)]
 X.classes <- factor(X[[3]])
@@ -9,6 +10,7 @@ plot(X.values,col=ifelse(X.classes==levels(as.factor(X.classes))[1], "red","blue
 legend('topright',levels(as.factor(X.classes)),fill=c("red","blue"),bty='n')
 
 #a) Assumptions:  gaussianity (qda/lda) and same variance of the groups (lda only)
+load("~/GitHub/Applied-Statistics-Exam/mcshapiro.test.RData")
 mcshapiro.test(X.values[which(X.classes==levels(X.classes)[1]),])$p
 mcshapiro.test(X.values[which(X.classes==levels(X.classes)[2]),])$p
 bartlett.test(X.values[which(X.classes==levels(X.classes)[1]),],X.values[which(X.classes==levels(X.classes)[2]),])
@@ -38,7 +40,7 @@ contour(x, y, matrix(z2.q, 200), levels=0, drawlabels=F, add=T, lty=2)
 
 #c) QDA
 library(MASS) #for lda/qda
-qda.mod <- qda(as.matrix(X.values), X.classes, prior= c(0.1,0.9)) # remember to add prior if needed
+qda.mod <- qda(as.matrix(X.values), X.classes) # remember to add prior if needed
 qda.mod
 classification <-predict(qda.mod)$class
 # Plot:
@@ -70,11 +72,11 @@ APER  <- conf.mat[1,2]/(conf.mat[1,2]+conf.mat[1,1])*prior[1]+conf.mat[2,1]/(con
 APER
   
 
-#e) AER through leave-one-out cross-validation
+#e) AER through leave-one-out cross-validation 
 errors_CV <- 0
 n <- dim(X)[1]
 for(i in 1:n){
-  modCV.i <- qda(X.values[-i,], X.classes[-i], prior=prior)
+  modCV.i <- qda(X.values[-i,], X.classes[-i]) # remembere to use the right model, add the prior if needed
   errors_CV <- errors_CV + as.numeric(predict(modCV.i,X.values[i,])$class != X.classes[i])
 }
 errors_CV
@@ -88,10 +90,11 @@ Prob
 
 #g) SVM
 library(e1071) # for svm
-dat <- data.frame(X.values, y=as.factor (X.classes))   # to use svm you must build a data.frame where the class must be called y and must be factor
-svm.mod <- svm(y~., data=dat , kernel ='linear', cost =10, scale =FALSE ) #y~. means use all the features
+dat <- data.frame(X.values, y=as.factor(X.classes)) # to use svm you must build a data.frame where the class must be called y and must be factor, 
+                                                                                                        # no other feature can be called y!! 
+svm.mod <- svm(y~., data=dat , kernel ='radial', cost =10, scale =FALSE ) #y~. means use all the features, kernel= linear/radial...
 summary(svm.mod)
-classification <- predict(svm.mod)
+classification <- predict(svm.mod, X.values)
 #Plot 1:
 x11()
 par(mfrow=c(1,2))
@@ -124,20 +127,47 @@ x11()
 plot(bestmod , dat, col =c('salmon', 'light blue'), pch=19)
 
 #i) Predict the class of a new unit
-x0 <- data.frame(x1=50, x2=3.5)
+x0 <- data.frame(x=10.8, y=39.4)
 names(x0) <- names(X.values)
 predict(svm.mod, x0)
 
 #j) k-nearest-neighbors
 library(class) #for knn
-k <- 5
+k <- 4
+knn.mod <- knn(train = X.values, test = X.values, cl = X.classes, k = k)
+#Plot:
 x11()
 plot(X.values,col=ifelse(X.classes==levels(as.factor(X.classes))[1], "red","blue"),main="True classification")
 legend('topright',levels(as.factor(X.classes)),fill=c("red","blue"),bty='n')
-x  <- seq(min(X.values[,1]), max(X.values[,1]), length=200)
-y  <- seq(min(X.values[,2]), max(X.values[,2]), length=200)
+grid.pts <- 100
+x  <- seq(min(X.values[,1]), max(X.values[,1]), length=grid.pts)
+y  <- seq(min(X.values[,2]), max(X.values[,2]), lengthgrid.pts)
 xy <- expand.grid(x, y)
 names(xy) <- names(X.values)
-knn.mod <- knn(train = X.values, test = xy, cl = X.classes, k = k)
-z  <- as.numeric(knn.mod)
-contour(x, y, matrix(z, 200), levels=c(1.5, 2.5), drawlabels=F, add=T)
+knn.mod.plot <- knn(train = X.values, test = xy, cl = X.classes, k = k)
+z  <- as.numeric(knn.mod.plot)
+contour(x, y, matrix(z, grid.pts), levels=c(1.5, 2.5), drawlabels=F, add=T)
+
+#k) Tune k in k-n-n through leave-one-out cross-validation 
+set.seed(19)
+n <- dim(X)[1]
+ks <- 10:30
+AERCV <- NULL
+library(class) #for knn
+for (k in ks){
+  errors_CV <- 0
+  for(i in 1:n){
+    modCV.i <- knn(train = X.values[-i,], test = X.values[i,], X.classes[-i], k=k) 
+    errors_CV <- errors_CV + as.numeric(modCV.i != X.classes[i])
+  }
+  AERCV   <- c(AERCV,sum(errors_CV)/n)
+}
+x11()
+plot(AERCV)
+best.k <- which.min(AERCV)
+min(AERCV)
+
+#l) Predict with knn
+x0 <- data.frame(x=10.8, y=39.4)
+names(x0) <- names(X.values)
+knn(train = X.values, test = x0, cl = X.classes, k = k)
