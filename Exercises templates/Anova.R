@@ -1,7 +1,7 @@
 X <- read.table("~/GitHub/Applied-Statistics-Exam/Exams of previous years/2018/2018-09-13/Waiting.txt") #example, substitute
 attach(X)
 x11()
-boxplot(waiting ~ course+ city,las=2)
+boxplot(waiting ~ course + city,las=2)
 
 #a) Two-ways anova and hypothesis checking
 an <- aov(waiting ~ course + city + course:city)
@@ -40,7 +40,7 @@ summary(an_new)
 #c) Confidence intervals (balanced) for the difference of the means of the groups identified in previous step
 n<-dim(X)[1]
 g <- 3 
-k <- g*(g-1)/2 # bonferroni correction
+k <- g*(g-1)/2 # num of comparisons, for bonferroni correction
 smean <- tapply(waiting,course,mean) # in alphabetical order of the factors
 Spooled <- sum((an_new$residuals)^2)/(n-g)
 n1 <- length(which(course=="Starter"))

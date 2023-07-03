@@ -10,7 +10,7 @@ if (dim(X)[2]==2) {
 D <- dist(X) #distance matrix
 clust <- hclust(D, method="single") #linkages: single,complete, average
 x11()
-plot(clust, hang=-0.1, xlab='', labels=F, cex=0.6, sub='') #dendogram
+plot(clust, hang=-0.1, xlab='', labels=F, cex=0.6, sub='') #dendrogram
 groups <- cutree(clust,3)
 #centers:
 if (length(table(groups)) == 2){
